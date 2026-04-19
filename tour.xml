@@ -1,0 +1,108 @@
+﻿<krpano version="1.23" title="Virtual Tour">
+
+
+	<!--
+	    For an alternative skin design either change the <skin_settings> values 
+	    from above or optionally include one of the predefined designs from below.
+	-->
+	<!-- <include url="skin/vtourskin_design_flat_light.xml"  /> -->
+	<!-- <include url="skin/vtourskin_design_glass.xml"       /> -->
+	<!-- <include url="skin/vtourskin_design_ultra_light.xml" /> -->
+	<!-- <include url="skin/vtourskin_design_117.xml"         /> -->
+	<!-- <include url="skin/vtourskin_design_117round.xml"    /> -->
+	<!-- <include url="skin/vtourskin_design_black.xml"       /> -->
+
+	<!-- a little helper editor tool, add 'initvars.editmode=true' as url-parameter to enable -->
+	<include url="tour_edithelper.xml" if="editmode" />
+
+	<!-- several helpers -->
+	<include url="%VIEWER%/plugins/contextmenu.xml" />
+	<include url="%VIEWER%/plugins/iphone_fullscreen_swipe.xml" />
+	<include url="%VIEWER%/plugins/webvr.xml" />
+	<include url="%VIEWER%/plugins/controls3d.xml" />
+
+	<!--startup - load the firstscene -->
+	<events name="tourevents" keep="true" onxmlcomplete="setup_first_scene();"/>
+	<action name="setup_first_scene" scope="local">
+		set(view, tx=get(image.ox), ty=get(image.oy), tz=get(image.oz));
+		set(events[tourevents].onxmlcomplete, null); set(events[tourevents].onloadcomplete);
+	</action>
+	<action name="startup" autorun="onstart">
+		if(startscene == null oR !scene[get(startscene)], copy(startscene,scene[0].name); ) ;
+		loadscene(get(startscene), null, MERGE); if(startactions !== null, startactions() ) ;
+	</action>
+	
+	<!-- action for loading scenes -->
+	<action name="tour_loadscene" scope="local" args="scenename">
+		loadscene(get(scenename), null, MERGE|KEEPVIEW|KEEPMOVING, BLEND(2.0));
+	</action>
+
+
+
+
+<style name="cc_STYLE" tx="0.0" ty="0.0" tz="0" ox="0.0" oy="-30.0" oz="0.0"  prealign="-0.0|-0.0|0.0" linkedscene="scene_c" />
+
+
+
+<style name="envobj_STYLE" ox="0.0" oy="-0.0" oz="-68.2" prealign="-0.0|-0.0|0.0" linkedscene="envobj" />
+	<scene name="envobj" autoload="true">
+		<image style="envobj_STYLE">
+			<preview url="geo/baketex.jpg"  />
+			<depthmap url="geo/envcouta.obj" texurl="geo/baketex.jpg" scale="100" hittest="true" />
+		</image>
+
+	</scene>
+		
+
+	<scene name="scene_c" title="c" onstart="" thumburl="panos/c.tiles/thumb.jpg" lat="" lng="" alt="" heading="">
+		
+		<control bouncinglimits="calc:image.cube ? true : false" />
+
+		<view hlookat="0.0" vlookat="0.0" fovtype="MFOV" fov="120" maxpixelzoom="2.0" fovmin="70" fovmax="140" limitview="auto" />
+
+		<preview url="panos/c.tiles/preview.jpg" />
+
+		<image style="cc_STYLE">	
+			<cube url="panos/c.tiles/%s/l%l/%v/l%l_%s_%v_%h.jpg" multires="512,640,1280,2624" />
+			<depthmap url="geo/ccc.stl" 			   
+            hittest="true"
+         	hittestmode="cpu"
+         	axis="+x+y+z"
+         	cull="front"
+         	scale="100"
+         	ox="0" oy="0" oz="0"
+         	subdiv=""
+         	backgroundurl=""
+         	/>
+		</image>
+
+	</scene>
+
+
+	<style name="info" type="text" css="color:#FFFFFF;text-align:center;" bg="false" txtshadow="0 1 4 0x000000 1.0" enabled="false" />
+	<style name="button" type="text" css="text-align:center;" padding="4 8" bgborder="0 0xFFFFFF 1" bgroundedge="1" bgshadow="0 1 4 0x000000 1.0" ondown="set(bgcolor, 0xDDDDDD);" onup="set(bgcolor, 0xFFFFFF);" />
+
+	<layer name="dollhouse" style="button" keep="true" html="3D视图（室外）"  width="100" align="bottom" y="10" onclick="dollhouse_view();" />
+	<layer name="resetview" style="button" keep="true" html="全景视图（室内）" width="100" align="bottom" y="60" onclick="resetview();" />
+	
+		
+	<action name="dollhouse_view">		
+		loadscene(envobj,null,MERGE|KEEPMOVING|KEEPSCENES, BLEND(1));
+		lookto(360,20,90,default,true,true);
+		tween(view.oz|view.tx|view.ty|view.tz,calc(''+200+'|'+image.ox+'|'+image.oy+'|'+image.oz));
+	</action>
+
+	<action name="dollhouse_off">
+		tween(view.oz, 0.0, 2.0);
+	</action>
+
+	<action name="resetview">
+		loadscene(scene_c,null,MERGE|KEEPMOVING|KEEPSCENES, BLEND(1));
+		tween(view.tx|view.ty|view.tz|view.ox|view.oy|view.oz|view.fisheye,
+			calc(''+image.ox+'|'+image.oy+'|'+image.oz+'|0|0|0|0'),
+			0.5,
+			default
+		);
+	</action>
+
+</krpano>
